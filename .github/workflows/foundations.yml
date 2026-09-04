@@ -1,0 +1,53 @@
+name: Validate Engineering Foundations
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  php-pdo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, mbstring
+          coverage: none
+      - name: PHP syntax
+        run: |
+          php -l foundations/php/pdo/Database.php
+          php -l foundations/php/pdo/ItemRepository.php
+          php -l foundations/php/pdo/demo.php
+      - name: PDO runtime demo
+        run: php foundations/php/pdo/demo.php
+
+  node-http:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: foundations/http/node
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install
+        run: npm install --ignore-scripts --no-audit --no-fund
+      - name: Syntax check
+        run: npm run check
+
+  python-http:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile
+        run: python -m py_compile foundations/http/python/server.py
